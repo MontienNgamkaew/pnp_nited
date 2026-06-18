@@ -928,43 +928,7 @@ function loadAdminDashboard() {
                     dlSummaryBtn.onclick = () => {
                         showToast('กำลังจัดเตรียมไฟล์ PDF... กรุณารอสักครู่', 'info');
                         compileAdminTeacherSummaryPrintDocument(metrics);
-
-                        const element = document.getElementById('print-layout-container');
-                        if (!element) return;
-
-                        // Temporarily show off-screen to allow html2canvas to capture it styled
-                        element.style.display = 'block';
-                        element.style.position = 'absolute';
-                        element.style.left = '-9999px';
-                        element.style.top = '0';
-                        element.style.width = '800px';
-
-                        const opt = {
-                            margin:       [15, 20, 15, 20],
-                            filename:     `รายงานสรุปการนิเทศ_${new Date().toISOString().slice(0, 10)}.pdf`,
-                            image:        { type: 'jpeg', quality: 0.98 },
-                            html2canvas:  { scale: 2, useCORS: true, logging: false },
-                            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                            pagebreak:    { mode: ['css', 'legacy'] }
-                        };
-
-                        html2pdf().set(opt).from(element).save().then(() => {
-                            // Restore styling
-                            element.style.display = '';
-                            element.style.position = '';
-                            element.style.left = '';
-                            element.style.top = '';
-                            element.style.width = '';
-                            showToast('ดาวน์โหลดไฟล์ PDF รายงานสรุปเรียบร้อยแล้ว', 'success');
-                        }).catch(err => {
-                            console.error(err);
-                            showToast('เกิดข้อผิดพลาดในการสร้างไฟล์ PDF', 'error');
-                            element.style.display = '';
-                            element.style.position = '';
-                            element.style.left = '';
-                            element.style.top = '';
-                            element.style.width = '';
-                        });
+                        downloadElementAsPDF('print-layout-container', `รายงานสรุปการนิเทศ_${new Date().toISOString().slice(0, 10)}.pdf`);
                     };
                 }
             }
@@ -1280,43 +1244,7 @@ function renderReportDetailHtml(r, container) {
     if (dlPdfBtn) {
         dlPdfBtn.onclick = () => {
             showToast('กำลังจัดเตรียมไฟล์ PDF... กรุณารอสักครู่', 'info');
-
-            const element = document.getElementById('print-layout-container');
-            if (!element) return;
-
-            // Temporarily show off-screen to allow html2canvas to capture it styled
-            element.style.display = 'block';
-            element.style.position = 'absolute';
-            element.style.left = '-9999px';
-            element.style.top = '0';
-            element.style.width = '800px';
-
-            const opt = {
-                margin:       [15, 20, 15, 20],
-                filename:     `รายงานการนิเทศ_${r.company_name}_${r.supervision_date}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, logging: false },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak:    { mode: ['css', 'legacy'] }
-            };
-
-            html2pdf().set(opt).from(element).save().then(() => {
-                // Restore styling
-                element.style.display = '';
-                element.style.position = '';
-                element.style.left = '';
-                element.style.top = '';
-                element.style.width = '';
-                showToast('ดาวน์โหลดไฟล์ PDF เรียบร้อยแล้ว', 'success');
-            }).catch(err => {
-                console.error(err);
-                showToast('เกิดข้อผิดพลาดในการสร้างไฟล์ PDF', 'error');
-                element.style.display = '';
-                element.style.position = '';
-                element.style.left = '';
-                element.style.top = '';
-                element.style.width = '';
-            });
+            downloadElementAsPDF('print-layout-container', `รายงานการนิเทศ_${r.company_name}_${r.supervision_date}.pdf`);
         };
     }
 }
@@ -1590,5 +1518,54 @@ if (dModal) {
     
     window.addEventListener('click', (e) => {
         if (e.target === dModal) closeFn();
+    });
+}
+
+// ==========================================
+// PDF Export Utility (html2pdf wrapper)
+// ==========================================
+function downloadElementAsPDF(elementId, filename) {
+    const originalElement = document.getElementById(elementId);
+    if (!originalElement) {
+        showToast('ไม่พบข้อมูลสำหรับสร้าง PDF', 'error');
+        return;
+    }
+
+    // Create a clone of the element to avoid duplicate ID issues and CSS display: none overrides
+    const clone = originalElement.cloneNode(true);
+    clone.id = 'pdf-export-temp-container';
+    
+    // Apply styles to make it visible to html2canvas but hidden from the user
+    clone.style.display = 'block';
+    clone.style.position = 'absolute';
+    clone.style.left = '-9999px';
+    clone.style.top = '0';
+    clone.style.width = '800px'; // Approx A4 width
+    clone.style.backgroundColor = '#ffffff';
+    clone.style.color = '#000000';
+    clone.style.fontFamily = '"TH Sarabun New", "TH Sarabun PSK", "Sarabun", sans-serif';
+    clone.style.fontSize = '16pt';
+    clone.style.lineHeight = '1.2';
+    clone.style.padding = '0px';
+    clone.style.margin = '0px';
+
+    document.body.appendChild(clone);
+
+    const opt = {
+        margin:       [15, 20, 15, 20], // top, left, bottom, right
+        filename:     filename,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, logging: false },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak:    { mode: ['css', 'legacy'] }
+    };
+
+    html2pdf().set(opt).from(clone).save().then(() => {
+        clone.remove();
+        showToast('ดาวน์โหลดไฟล์ PDF เรียบร้อยแล้ว', 'success');
+    }).catch(err => {
+        console.error('PDF export error:', err);
+        clone.remove();
+        showToast('เกิดข้อผิดพลาดในการดาวน์โหลด PDF', 'error');
     });
 }
