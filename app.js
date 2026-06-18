@@ -1525,37 +1525,23 @@ if (dModal) {
 // PDF Export Utility (html2pdf wrapper)
 // ==========================================
 function downloadElementAsPDF(elementId, filename) {
-    const originalElement = document.getElementById(elementId);
-    if (!originalElement) {
+    const element = document.getElementById(elementId);
+    if (!element) {
         showToast('ไม่พบข้อมูลสำหรับสร้าง PDF', 'error');
         return;
     }
 
-    // Create a clone of the element to avoid duplicate ID issues and CSS display: none overrides
-    const clone = originalElement.cloneNode(true);
-    clone.id = 'pdf-export-temp-container';
-    
-    // Apply styles to make it visible to html2canvas (in viewport) but hidden behind screen elements
-    clone.style.display = 'block';
-    clone.style.visibility = 'visible';
-    clone.style.position = 'fixed';
-    clone.style.left = '0';
-    clone.style.top = '0';
-    clone.style.zIndex = '-9999'; // Way behind screen layers
-    clone.style.width = '800px'; // Approx A4 width
-    clone.style.height = 'auto';
-    clone.style.backgroundColor = '#ffffff';
-    clone.style.color = '#000000';
-    clone.style.fontFamily = '"TH Sarabun New", "TH Sarabun PSK", "Sarabun", sans-serif';
-    clone.style.fontSize = '16pt';
-    clone.style.lineHeight = '1.2';
-    clone.style.padding = '0px';
-    clone.style.margin = '0px';
+    // Save current display style
+    const originalDisplay = element.style.display;
 
-    document.body.appendChild(clone);
+    // Temporarily make it visible in the document flow
+    element.style.display = 'block';
 
-    // Wait for all images inside the clone to be fully loaded
-    const images = clone.getElementsByTagName('img');
+    // Force a synchronous reflow/layout calculation so html2canvas doesn't read 0 dimensions
+    const reflow = element.offsetHeight; 
+
+    // Wait for all images inside the element to be fully loaded
+    const images = element.getElementsByTagName('img');
     const promises = Array.from(images).map(img => {
         if (img.complete) return Promise.resolve();
         return new Promise(resolve => {
@@ -1565,28 +1551,31 @@ function downloadElementAsPDF(elementId, filename) {
     });
 
     Promise.all(promises).then(() => {
-        const opt = {
-            margin:       [15, 20, 15, 20], // top, left, bottom, right
-            filename:     filename,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { 
-                scale: 2, 
-                useCORS: true, 
-                logging: false,
-                scrollX: 0,
-                scrollY: 0
-            },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak:    { mode: ['css', 'legacy'] }
-        };
+        // Wait another 150ms to allow layout engine to fully settle and apply web fonts/images
+        setTimeout(() => {
+            const opt = {
+                margin:       [15, 20, 15, 20], // top, left, bottom, right in mm
+                filename:     filename,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { 
+                    scale: 2, 
+                    useCORS: true, 
+                    logging: false,
+                    scrollX: 0,
+                    scrollY: 0
+                },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['css', 'legacy'] }
+            };
 
-        html2pdf().set(opt).from(clone).save().then(() => {
-            clone.remove();
-            showToast('ดาวน์โหลดไฟล์ PDF เรียบร้อยแล้ว', 'success');
-        }).catch(err => {
-            console.error('PDF export error:', err);
-            clone.remove();
-            showToast('เกิดข้อผิดพลาดในการดาวน์โหลด PDF', 'error');
-        });
+            html2pdf().set(opt).from(element).save().then(() => {
+                element.style.display = originalDisplay;
+                showToast('ดาวน์โหลดไฟล์ PDF เรียบร้อยแล้ว', 'success');
+            }).catch(err => {
+                console.error('PDF export error:', err);
+                element.style.display = originalDisplay;
+                showToast('เกิดข้อผิดพลาดในการดาวน์โหลด PDF', 'error');
+            });
+        }, 150);
     });
 }
