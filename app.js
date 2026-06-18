@@ -1538,6 +1538,9 @@ function downloadElementAsPDF(elementId, filename) {
         return;
     }
 
+    // Get the base URL of the current page to resolve relative assets in the popup
+    const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+
     // Generate the HTML for the preview window
     printWindow.document.write(`
         <!DOCTYPE html>
@@ -1545,6 +1548,7 @@ function downloadElementAsPDF(elementId, filename) {
         <head>
             <meta charset="UTF-8">
             <title>${filename.replace('.pdf', '')}</title>
+            <base href="${baseUrl}">
             <!-- Google Fonts -->
             <link rel="preconnect" href="https://fonts.googleapis.com">
             <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1659,11 +1663,11 @@ function downloadElementAsPDF(elementId, filename) {
             </div>
 
             <script>
-                // Automatically open print dialog after a brief delay
+                // Automatically open print dialog after a brief delay to allow layout to settle
                 window.onload = function() {
                     setTimeout(function() {
                         window.print();
-                    }, 500);
+                    }, 1000);
                 };
             </script>
         </body>
