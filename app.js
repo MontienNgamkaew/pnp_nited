@@ -1531,51 +1531,144 @@ function downloadElementAsPDF(elementId, filename) {
         return;
     }
 
-    // Save current display style
-    const originalDisplay = element.style.display;
+    // Open a new tab for print preview
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        showToast('กรุณาอนุญาตให้เบราว์เซอร์เปิดหน้าต่างป๊อปอัป (Pop-up)', 'warning');
+        return;
+    }
 
-    // Temporarily make it visible in the document flow
-    element.style.display = 'block';
+    // Generate the HTML for the preview window
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html lang="th">
+        <head>
+            <meta charset="UTF-8">
+            <title>${filename.replace('.pdf', '')}</title>
+            <!-- Google Fonts -->
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+            <!-- FontAwesome for icons -->
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+            <link rel="stylesheet" href="style.css">
+            <style>
+                /* Screen layout styles to render it like a real A4 paper preview */
+                body {
+                    background-color: #f1f5f9;
+                    margin: 0;
+                    padding: 30px 10px;
+                    font-family: "TH Sarabun New", "TH Sarabun PSK", "Sarabun", sans-serif;
+                }
+                
+                .preview-header-bar {
+                    max-width: 800px;
+                    margin: 0 auto 20px auto;
+                    background: #ffffff;
+                    padding: 12px 24px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    font-family: 'Sarabun', sans-serif;
+                }
 
-    // Force a synchronous reflow/layout calculation so html2canvas doesn't read 0 dimensions
-    const reflow = element.offsetHeight; 
+                .preview-title-info h3 {
+                    margin: 0;
+                    font-size: 16px;
+                    color: #0f2d59;
+                }
+                .preview-title-info p {
+                    margin: 4px 0 0 0;
+                    font-size: 12px;
+                    color: #64748b;
+                }
 
-    // Wait for all images inside the element to be fully loaded
-    const images = element.getElementsByTagName('img');
-    const promises = Array.from(images).map(img => {
-        if (img.complete) return Promise.resolve();
-        return new Promise(resolve => {
-            img.onload = resolve;
-            img.onerror = resolve;
-        });
-    });
+                .btn-print-action {
+                    background-color: #bd2130;
+                    color: white;
+                    border: none;
+                    padding: 10px 20px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    transition: background 0.2s;
+                }
 
-    Promise.all(promises).then(() => {
-        // Wait another 150ms to allow layout engine to fully settle and apply web fonts/images
-        setTimeout(() => {
-            const opt = {
-                margin:       [15, 20, 15, 20], // top, left, bottom, right in mm
-                filename:     filename,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { 
-                    scale: 2, 
-                    useCORS: true, 
-                    logging: false,
-                    scrollX: 0,
-                    scrollY: 0
-                },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak:    { mode: ['css', 'legacy'] }
-            };
+                .btn-print-action:hover {
+                    background-color: #a01a27;
+                }
 
-            html2pdf().set(opt).from(element).save().then(() => {
-                element.style.display = originalDisplay;
-                showToast('ดาวน์โหลดไฟล์ PDF เรียบร้อยแล้ว', 'success');
-            }).catch(err => {
-                console.error('PDF export error:', err);
-                element.style.display = originalDisplay;
-                showToast('เกิดข้อผิดพลาดในการดาวน์โหลด PDF', 'error');
-            });
-        }, 150);
-    });
+                #print-layout-container {
+                    display: block !important;
+                    width: 210mm; /* Standard A4 Width */
+                    min-height: 297mm;
+                    margin: 0 auto;
+                    background-color: #ffffff;
+                    padding: 1.0in; /* Match standard print margin */
+                    box-sizing: border-box;
+                    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+                    border-radius: 4px;
+                }
+
+                /* Print specific styling overrides */
+                @media print {
+                    body {
+                        background-color: #ffffff;
+                        padding: 0;
+                    }
+                    .preview-header-bar {
+                        display: none !important;
+                    }
+                    #print-layout-container {
+                        width: 100%;
+                        min-height: auto;
+                        padding: 0;
+                        margin: 0;
+                        box-shadow: none;
+                        border-radius: 0;
+                    }
+                    @page {
+                        size: A4;
+                        margin-left: 1.0in;
+                        margin-right: 1.0in;
+                        margin-top: 1.0in;
+                        margin-bottom: 1.0in;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="preview-header-bar">
+                <div class="preview-title-info">
+                    <h3>ตัวอย่างเอกสารก่อนดาวน์โหลด PDF / พิมพ์</h3>
+                    <p><i class="fa-solid fa-circle-info"></i> กรุณาเลือกปลายทางเป็น <strong>"บันทึกเป็น PDF" (Save as PDF)</strong> เพื่อดาวน์โหลดไฟล์เก็บไว้</p>
+                </div>
+                <button class="btn-print-action" onclick="window.print()">
+                    <i class="fa-solid fa-file-pdf"></i> บันทึกเป็น PDF / สั่งพิมพ์
+                </button>
+            </div>
+
+            <div id="print-layout-container">
+                ${element.innerHTML}
+            </div>
+
+            <script>
+                // Automatically open print dialog after a brief delay
+                window.onload = function() {
+                    setTimeout(function() {
+                        window.print();
+                    }, 500);
+                };
+            </script>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+    showToast('เปิดหน้าต่างตัวอย่างก่อนพิมพ์เรียบร้อยแล้ว', 'success');
 }
