@@ -980,6 +980,13 @@ textarea:focus {
 /* ==========================================
    Part 3: Evaluation Matrix Table
    ========================================== */
+.evaluation-matrix-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 12px;
+}
+
 .evaluation-table {
     width: 100%;
     border-collapse: collapse;
@@ -1482,13 +1489,113 @@ textarea:focus {
         grid-template-columns: 1fr;
     }
     
+    /* Responsive Student Inputs Grid */
     .student-row-grid {
         grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        padding: 14px;
     }
     
-    .student-row-grid button {
+    .student-row-grid > .form-group:nth-child(1) { /* ชื่อ-นามสกุล */
         grid-column: 1 / -1;
+    }
+    
+    .student-row-grid > .form-group:nth-child(2) { /* ระดับชั้น */
+        grid-column: 1 / 2;
+    }
+    
+    .student-row-grid > .form-group:nth-child(3) { /* ชั้นปีที่ */
+        grid-column: 2 / 3;
+    }
+    
+    .student-row-grid > .form-group:nth-child(4) { /* แผนกวิชา */
+        grid-column: 1 / -1;
+    }
+    
+    .student-row-grid > div:last-child { /* Container ของปุ่มลบ */
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 4px;
+    }
+    
+    .student-row-grid > div:last-child button {
+        width: 100%;
+        background-color: var(--danger-light);
+        color: var(--danger);
+        border: 1px solid rgba(239, 68, 68, 0.15);
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 13px;
+        display: inline-flex;
+        align-items: center;
         justify-content: center;
+        gap: 6px;
+        transition: all var(--transition-fast);
+    }
+    
+    .student-row-grid > div:last-child button i {
+        margin: 0;
+    }
+    
+    .student-row-grid > div:last-child button::after {
+        content: ' ลบผู้เรียนคนนี้';
+    }
+    
+    /* Responsive Modal Detail components */
+    .detail-grid-info {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 12px;
+    }
+    
+    .photos-summary-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Login Card responsiveness on narrow mobile screens */
+    .login-card {
+        padding: 32px 20px 24px;
+        border-radius: 24px;
+    }
+    
+    .login-logo {
+        width: 85px;
+        height: 85px;
+        padding: 12px;
+        border-radius: 20px;
+        margin-bottom: 16px;
+    }
+    
+    .login-header h2 {
+        font-size: 17.1px;
+    }
+    
+    .login-header p {
+        font-size: 11px;
+    }
+    
+    .login-footer {
+        font-size: 10.8px;
+        padding-top: 14px;
+        margin-top: 20px;
+    }
+    
+    /* Prevent table columns from squishing inside scrollable container */
+    .overflow-x .table {
+        min-width: 700px;
+    }
+    
+    .evaluation-matrix-container .evaluation-table {
+        min-width: 500px;
+    }
+    
+    /* Grid collapse for list cards on tiny screens to avoid layout breaks */
+    .reports-grid {
+        grid-template-columns: 1fr;
     }
 }
 

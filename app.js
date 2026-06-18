@@ -515,6 +515,9 @@ function setupSignaturePad() {
     });
 
     canvas.addEventListener('touchend', () => isDrawing = false);
+    
+    // Resize drawing canvas resolution on window resize/rotate
+    window.addEventListener('resize', resizeSignatureCanvas);
 }
 
 function startSigDrawing(e) {
@@ -1760,8 +1763,16 @@ function setupMobileSidebar() {
     const sidebar = document.querySelector('.sidebar');
     
     if (toggle && sidebar) {
-        toggle.addEventListener('click', () => {
+        toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
             sidebar.classList.toggle('active');
+        });
+
+        // Close sidebar when clicking outside on mobile devices
+        document.addEventListener('click', (e) => {
+            if (sidebar.classList.contains('active') && !sidebar.contains(e.target) && !toggle.contains(e.target)) {
+                sidebar.classList.remove('active');
+            }
         });
     }
 }
