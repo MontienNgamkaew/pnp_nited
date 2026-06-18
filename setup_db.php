@@ -3,21 +3,27 @@
 
 header('Content-Type: text/html; charset=utf-8');
 
-$host = 'localhost';
-$user = 'root';
-$pass = '';
+$host = getenv('DB_HOST') ?: 'localhost';
+$user = getenv('DB_USER') ?: 'root';
+$pass = getenv('DB_PASSWORD') !== false ? getenv('DB_PASSWORD') : '';
+$port = getenv('DB_PORT') ?: '3306';
+$db_name = getenv('DB_NAME') ?: 'pnp_nited_db';
 
 try {
-    // 1. Connect to MySQL without selecting database
-    $pdo = new PDO("mysql:host=$host", $user, $pass);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-    // 2. Create Database
-    $pdo->exec("CREATE DATABASE IF NOT EXISTS pnp_nited_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-    echo "<h3>1. สร้าง/ตรวจสอบฐานข้อมูล pnp_nited_db เรียบร้อย...</h3>";
-
-    // 3. Connect to Database
-    $pdo->exec("USE pnp_nited_db");
+    // 1. Connect to MySQL (try connecting directly to assigned DB first)
+    $dsn = "mysql:host=$host;port=$port";
+    try {
+        $pdo = new PDO("$dsn;dbname=$db_name", $user, $pass);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        echo "<h3>1. เชื่อมต่อฐานข้อมูล $db_name เรียบร้อย...</h3>";
+    } catch (PDOException $ex) {
+        // Fallback: Connect to host and try to create DB (like locally)
+        $pdo = new PDO($dsn, $user, $pass);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $pdo->exec("CREATE DATABASE IF NOT EXISTS `$db_name` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+        $pdo->exec("USE `$db_name`");
+        echo "<h3>1. สร้าง/ตรวจสอบฐานข้อมูล $db_name เรียบร้อย...</h3>";
+    }
 
     // Drop old tables to apply structural changes cleanly
     $pdo->exec("SET FOREIGN_KEY_CHECKS = 0;");
