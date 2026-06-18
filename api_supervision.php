@@ -235,8 +235,7 @@ function handleAdd($pdo) {
         echo json_encode(['status' => 'error', 'message' => 'กรุณากรอกข้อมูลผู้เรียนอย่างน้อย 1 คน']);
         exit;
     }
-
-    // Handle Image uploads (4 slots)
+    // Handle Base64 Image uploads from POST (4 slots)
     $uploaded_photos = [
         'photo_1' => null,
         'photo_2' => null,
@@ -244,50 +243,13 @@ function handleAdd($pdo) {
         'photo_4' => null
     ];
 
-    $upload_dir = __DIR__ . '/uploads/';
-    if (!file_exists($upload_dir)) {
-        mkdir($upload_dir, 0777, true);
-    }
-
-    $max_file_size = 3 * 1024 * 1024;
-    $allowed_extensions = ['jpg', 'jpeg', 'png', 'webp'];
-
     for ($i = 1; $i <= 4; $i++) {
         $field_name = "photo_$i";
-        if (isset($_FILES[$field_name]) && $_FILES[$field_name]['error'] !== UPLOAD_ERR_NO_FILE) {
-            if ($_FILES[$field_name]['error'] !== UPLOAD_ERR_OK) {
-                $err_code = $_FILES[$field_name]['error'];
-                $err_msg = "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพที่ $i (รหัสข้อผิดพลาด: $err_code)";
-                if ($err_code === UPLOAD_ERR_INI_SIZE || $err_code === UPLOAD_ERR_FORM_SIZE) {
-                    $err_msg = "ไฟล์รูปภาพที่ $i ขนาดใหญ่เกินความจุที่เซิร์ฟเวอร์รองรับ";
-                }
-                echo json_encode(['status' => 'error', 'message' => $err_msg]);
-                exit;
-            }
-            $file_tmp = $_FILES[$field_name]['tmp_name'];
-            $file_name = $_FILES[$field_name]['name'];
-            $file_size = $_FILES[$field_name]['size'];
-            
-            $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
-
-            if (!in_array($file_ext, $allowed_extensions)) {
-                echo json_encode(['status' => 'error', 'message' => "ไฟล์รูปภาพที่ $i นามสกุลไม่ถูกต้อง (รองรับ JPG, JPEG, PNG, WEBP)"]);
-                exit;
-            }
-
-            if ($file_size > $max_file_size) {
-                echo json_encode(['status' => 'error', 'message' => "ไฟล์รูปภาพที่ $i ขนาดใหญ่เกินไป (จำกัดไม่เกิน 3MB)"]);
-                exit;
-            }
-
-            $new_filename = uniqid('photo_' . $i . '_', true) . '.' . $file_ext;
-            $dest_path = $upload_dir . $new_filename;
-
-            if (move_uploaded_file($file_tmp, $dest_path)) {
-                $uploaded_photos[$field_name] = 'uploads/' . $new_filename;
-            } else {
-                echo json_encode(['status' => 'error', 'message' => "เกิดข้อผิดพลาดในการบันทึกรูปภาพที่ $i"]);
-                exit;
+        if (isset($_POST[$field_name]) && !empty($_POST[$field_name])) {
+            $data = $_POST[$field_name];
+            // Store the Base64 Data URL directly
+            if (strpos($data, 'data:image/') === 0) {
+                $uploaded_photos[$field_name] = $data;
             }
         }
     }
@@ -451,7 +413,7 @@ function handleEdit($pdo) {
             exit;
         }
 
-        // Handle Image uploads (4 slots)
+        // Handle Base64 Image updates (4 slots)
         $uploaded_photos = [
             'photo_1' => $report['photo_1'],
             'photo_2' => $report['photo_2'],
@@ -459,55 +421,30 @@ function handleEdit($pdo) {
             'photo_4' => $report['photo_4']
         ];
 
-        $upload_dir = __DIR__ . '/uploads/';
-        if (!file_exists($upload_dir)) {
-            mkdir($upload_dir, 0777, true);
-        }
-
-        $max_file_size = 3 * 1024 * 1024;
-        $allowed_extensions = ['jpg', 'jpeg', 'png', 'webp'];
-
         for ($i = 1; $i <= 4; $i++) {
             $field_name = "photo_$i";
-            if (isset($_FILES[$field_name]) && $_FILES[$field_name]['error'] !== UPLOAD_ERR_NO_FILE) {
-                if ($_FILES[$field_name]['error'] !== UPLOAD_ERR_OK) {
-                    $err_code = $_FILES[$field_name]['error'];
-                    $err_msg = "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพที่ $i (รหัสข้อผิดพลาด: $err_code)";
-                    if ($err_code === UPLOAD_ERR_INI_SIZE || $err_code === UPLOAD_ERR_FORM_SIZE) {
-                        $err_msg = "ไฟล์รูปภาพที่ $i ขนาดใหญ่เกินความจุที่เซิร์ฟเวอร์รองรับ";
-                    }
-                    echo json_encode(['status' => 'error', 'message' => $err_msg]);
-                    exit;
-                }
-                $file_tmp = $_FILES[$field_name]['tmp_name'];
-                $file_name = $_FILES[$field_name]['name'];
-                $file_size = $_FILES[$field_name]['size'];
-                
-                $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
-
-                if (!in_array($file_ext, $allowed_extensions)) {
-                    echo json_encode(['status' => 'error', 'message' => "ไฟล์รูปภาพที่ $i นามสกุลไม่ถูกต้อง (รองรับ JPG, JPEG, PNG, WEBP)"]);
-                    exit;
-                }
-
-                if ($file_size > $max_file_size) {
-                    echo json_encode(['status' => 'error', 'message' => "ไฟล์รูปภาพที่ $i ขนาดใหญ่เกินไป (จำกัดไม่เกิน 3MB)"]);
-                    exit;
-                }
-
-                $new_filename = uniqid('photo_' . $i . '_', true) . '.' . $file_ext;
-                $dest_path = $upload_dir . $new_filename;
-
-                if (move_uploaded_file($file_tmp, $dest_path)) {
-                    // Delete the old photo if it exists
+            $keep_name = "photo_keep_$i";
+            
+            if (isset($_POST[$field_name]) && !empty($_POST[$field_name])) {
+                // New photo uploaded (Base64 string)
+                $data = $_POST[$field_name];
+                if (strpos($data, 'data:image/') === 0) {
+                    // Delete old file if it was a file path on disk
                     $old_photo = $report[$field_name];
-                    if (!empty($old_photo) && file_exists(__DIR__ . '/' . $old_photo)) {
+                    if (!empty($old_photo) && strpos($old_photo, 'data:image/') !== 0 && file_exists(__DIR__ . '/' . $old_photo)) {
                         @unlink(__DIR__ . '/' . $old_photo);
                     }
-                    $uploaded_photos[$field_name] = 'uploads/' . $new_filename;
-                } else {
-                    echo json_encode(['status' => 'error', 'message' => "เกิดข้อผิดพลาดในการบันทึกรูปภาพที่ $i"]);
-                    exit;
+                    $uploaded_photos[$field_name] = $data;
+                }
+            } else {
+                $keep_val = isset($_POST[$keep_name]) ? $_POST[$keep_name] : '0';
+                if ($keep_val !== '1') {
+                    // Photo deleted
+                    $old_photo = $report[$field_name];
+                    if (!empty($old_photo) && strpos($old_photo, 'data:image/') !== 0 && file_exists(__DIR__ . '/' . $old_photo)) {
+                        @unlink(__DIR__ . '/' . $old_photo);
+                    }
+                    $uploaded_photos[$field_name] = null;
                 }
             }
         }

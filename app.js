@@ -438,20 +438,24 @@ function setupPhotoUploadPreviews() {
                     showToast(`กำลังประมวลผลและบีบอัดรูปภาพที่ ${i}...`, 'info');
                     
                     compressImage(file, function(blob) {
-                        compressedPhotos[i] = blob;
-                        
-                        // Set the photo_keep flag to 0 since a new image is selected
-                        const keepInput = document.getElementById(`photo-keep-${i}`);
-                        if (keepInput) keepInput.value = '0';
-                        
-                        // Render preview using object URL for memory efficiency
-                        const url = URL.createObjectURL(blob);
-                        preview.innerHTML = `
-                            <img src="${url}" alt="Preview image ${i}">
-                            <button type="button" class="btn-remove-img" onclick="clearPhotoInput(${i})" title="ลบรูปภาพ">&times;</button>
-                        `;
-                        preview.style.display = 'block';
-                        showToast(`บีบอัดรูปภาพที่ ${i} สำเร็จ`, 'success');
+                        const reader = new FileReader();
+                        reader.onloadend = function() {
+                            const base64data = reader.result;
+                            compressedPhotos[i] = base64data;
+                            
+                            // Set the photo_keep flag to 0 since a new image is selected
+                            const keepInput = document.getElementById(`photo-keep-${i}`);
+                            if (keepInput) keepInput.value = '0';
+                            
+                            // Render preview using base64 URL
+                            preview.innerHTML = `
+                                <img src="${base64data}" alt="Preview image ${i}">
+                                <button type="button" class="btn-remove-img" onclick="clearPhotoInput(${i})" title="ลบรูปภาพ">&times;</button>
+                            `;
+                            preview.style.display = 'block';
+                            showToast(`บีบอัดรูปภาพที่ ${i} สำเร็จ`, 'success');
+                        };
+                        reader.readAsDataURL(blob);
                     });
                 }
             });
@@ -606,10 +610,10 @@ function setupFormSubmissions() {
             // Setup FormData
             const formData = new FormData(this);
             
-            // Override photo fields with client-side compressed Blobs
+            // Override photo fields with client-side compressed Base64 strings
             for (let i = 1; i <= 4; i++) {
                 if (compressedPhotos[i]) {
-                    formData.set(`photo_${i}`, compressedPhotos[i], `photo_${i}.jpg`);
+                    formData.set(`photo_${i}`, compressedPhotos[i]);
                 } else {
                     // Remove raw empty files to prevent server processing
                     formData.delete(`photo_${i}`);
