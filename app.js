@@ -1281,7 +1281,7 @@ function compileOfficialThaiGovernmentPrintDocument(r) {
 
     let sigImgTag = '';
     if (r.signature) {
-        sigImgTag = `<img src="${r.signature}" alt="ลายมือชื่ออาจารย์">`;
+        sigImgTag = `<img src="${r.signature}" alt="ลายมือชื่อครูผู้นิเทศ">`;
     }
 
     printContainer.innerHTML = `
@@ -1297,7 +1297,7 @@ function compileOfficialThaiGovernmentPrintDocument(r) {
 
             <div class="print-field">
                 <strong>วันที่ตรวจนิเทศ:</strong> ${formatThaiDate(r.supervision_date)}
-                <span style="margin-left: 50px;"><strong>อาจารย์ผู้นิเทศ:</strong> ${r.teacher_name} ${r.teacher_lastname}</span>
+                <span style="margin-left: 50px;"><strong>ครูผู้นิเทศ:</strong> ${r.teacher_name} ${r.teacher_lastname}</span>
                 <span style="margin-left: 50px;"><strong>แผนกวิชา:</strong> ${r.department}</span>
             </div>
 
@@ -1330,7 +1330,7 @@ function compileOfficialThaiGovernmentPrintDocument(r) {
             <div class="print-section-title">แนวทางการแก้ไข ปรับปรุงข้อแนะนำ</div>
             <div class="print-textbox">${r.corrections || 'ไม่มีข้อมูลบันทึก'}</div>
 
-            <div class="print-section-title">ข้อคิดเห็นและข้อเสนอแนะเพิ่มเติมจากอาจารย์ผู้นิเทศ</div>
+            <div class="print-section-title">ข้อคิดเห็นและข้อเสนอแนะเพิ่มเติมจากครูผู้นิเทศ</div>
             <div class="print-textbox">${r.suggestions || 'ไม่มีข้อคิดเห็นเพิ่มเติม'}</div>
 
             <div class="print-signatures-area">
@@ -1339,8 +1339,7 @@ function compileOfficialThaiGovernmentPrintDocument(r) {
                         ${sigImgTag}
                     </div>
                     <div>( ${r.teacher_name} ${r.teacher_lastname} )</div>
-                    <div style="font-size:14px; margin-top:2px;">อาจารย์ผู้ลงตรวจนิเทศ</div>
-                    <div style="font-size:14px;">วิทยาลัยการอาชีพพนมไพร</div>
+                    <div style="font-size:14px; margin-top:2px;">ครูผู้นิเทศ</div>
                 </div>
             </div>
 
@@ -1421,7 +1420,6 @@ function compileAdminTeacherSummaryPrintDocument(metrics) {
                     <br><br>
                     <div>( ............................................................ )</div>
                     <div style="font-size:14px; margin-top:4px; font-weight:bold;">ผู้รายงาน/ผู้ตรวจสอบสถานะ</div>
-                    <div style="font-size:14px;">วิทยาลัยการอาชีพพนมไพร</div>
                 </div>
             </div>
         </div>
