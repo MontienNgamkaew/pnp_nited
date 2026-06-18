@@ -921,6 +921,18 @@ function loadAdminDashboard() {
                         window.print();
                     };
                 }
+
+                // Bind download PDF summary button
+                const dlSummaryBtn = document.getElementById('btn-download-summary-pdf');
+                if (dlSummaryBtn) {
+                    dlSummaryBtn.onclick = () => {
+                        showToast('กำลังจัดเตรียมไฟล์ PDF... กรุณาเลือกตัวเลือก "บันทึกเป็น PDF" ในช่องเครื่องพิมพ์', 'info');
+                        compileAdminTeacherSummaryPrintDocument(metrics);
+                        setTimeout(() => {
+                            window.print();
+                        }, 150);
+                    };
+                }
             }
         })
         .catch(err => console.error(err));
@@ -1227,6 +1239,16 @@ function renderReportDetailHtml(r, container) {
     if (printBtn) {
         printBtn.onclick = () => {
             window.print();
+        };
+    }
+
+    const dlPdfBtn = document.getElementById('btn-download-pdf');
+    if (dlPdfBtn) {
+        dlPdfBtn.onclick = () => {
+            showToast('กำลังจัดเตรียมไฟล์ PDF... กรุณาเลือกตัวเลือก "บันทึกเป็น PDF" ในช่องเครื่องพิมพ์', 'info');
+            setTimeout(() => {
+                window.print();
+            }, 150);
         };
     }
 }
