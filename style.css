@@ -1357,7 +1357,7 @@ textarea:focus {
 
     .print-header-logo {
         text-align: center;
-        margin-top: -20px;
+        margin-top: 0px;
         margin-bottom: 6px;
     }
 
