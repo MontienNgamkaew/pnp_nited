@@ -1535,12 +1535,15 @@ function downloadElementAsPDF(elementId, filename) {
     const clone = originalElement.cloneNode(true);
     clone.id = 'pdf-export-temp-container';
     
-    // Apply styles to make it visible to html2canvas but hidden from the user
+    // Apply styles to make it visible to html2canvas (in viewport) but hidden behind screen elements
     clone.style.display = 'block';
-    clone.style.position = 'absolute';
-    clone.style.left = '-9999px';
+    clone.style.visibility = 'visible';
+    clone.style.position = 'fixed';
+    clone.style.left = '0';
     clone.style.top = '0';
+    clone.style.zIndex = '-9999'; // Way behind screen layers
     clone.style.width = '800px'; // Approx A4 width
+    clone.style.height = 'auto';
     clone.style.backgroundColor = '#ffffff';
     clone.style.color = '#000000';
     clone.style.fontFamily = '"TH Sarabun New", "TH Sarabun PSK", "Sarabun", sans-serif';
@@ -1551,21 +1554,39 @@ function downloadElementAsPDF(elementId, filename) {
 
     document.body.appendChild(clone);
 
-    const opt = {
-        margin:       [15, 20, 15, 20], // top, left, bottom, right
-        filename:     filename,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, logging: false },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak:    { mode: ['css', 'legacy'] }
-    };
+    // Wait for all images inside the clone to be fully loaded
+    const images = clone.getElementsByTagName('img');
+    const promises = Array.from(images).map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(resolve => {
+            img.onload = resolve;
+            img.onerror = resolve;
+        });
+    });
 
-    html2pdf().set(opt).from(clone).save().then(() => {
-        clone.remove();
-        showToast('ดาวน์โหลดไฟล์ PDF เรียบร้อยแล้ว', 'success');
-    }).catch(err => {
-        console.error('PDF export error:', err);
-        clone.remove();
-        showToast('เกิดข้อผิดพลาดในการดาวน์โหลด PDF', 'error');
+    Promise.all(promises).then(() => {
+        const opt = {
+            margin:       [15, 20, 15, 20], // top, left, bottom, right
+            filename:     filename,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { 
+                scale: 2, 
+                useCORS: true, 
+                logging: false,
+                scrollX: 0,
+                scrollY: 0
+            },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            pagebreak:    { mode: ['css', 'legacy'] }
+        };
+
+        html2pdf().set(opt).from(clone).save().then(() => {
+            clone.remove();
+            showToast('ดาวน์โหลดไฟล์ PDF เรียบร้อยแล้ว', 'success');
+        }).catch(err => {
+            console.error('PDF export error:', err);
+            clone.remove();
+            showToast('เกิดข้อผิดพลาดในการดาวน์โหลด PDF', 'error');
+        });
     });
 }
