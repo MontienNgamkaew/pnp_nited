@@ -1314,6 +1314,15 @@ textarea:focus {
    ========================================== */
 #print-layout-container {
     display: none;
+    position: relative;
+    width: 100%;
+    color: #000000;
+    background-color: #ffffff;
+    font-family: "TH Sarabun New", "TH Sarabun PSK", "Sarabun", sans-serif;
+    font-size: 16pt;
+    line-height: 1.2;
+    padding: 0px;
+    margin: 0px;
 }
 
 @media print {
@@ -1324,15 +1333,6 @@ textarea:focus {
     
     #print-layout-container {
         display: block !important;
-        position: relative;
-        width: 100%;
-        color: #000000;
-        background-color: #ffffff;
-        font-family: "TH Sarabun New", "TH Sarabun PSK", "Sarabun", sans-serif;
-        font-size: 16pt;
-        line-height: 1.2;
-        padding: 0px;
-        margin: 0px;
     }
 
     /* Page margins setting */
@@ -1343,8 +1343,9 @@ textarea:focus {
         margin-top: 1.0in;
         margin-bottom: 1.0in;
     }
+}
 
-    .print-doc {
+.print-doc {
         width: 100%;
         background-color: #ffffff;
     }
@@ -1474,4 +1475,3 @@ textarea:focus {
         margin-top: 5px;
         font-size: 14pt;
     }
-}
