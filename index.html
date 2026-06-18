@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ระบบรายงานการนิเทศนักศึกษาฝึกอาชีพในสถานประกอบการ วิทยาลัยการอาชีพพนมไพร">
+    <title>ระบบรายงานการนิเทศนักศึกษาฝึกอาชีพ | วิทยาลัยการอาชีพพนมไพร</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- 1. LOGIN SCREEN -->
+    <div id="login-screen" class="login-wrapper">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="login-logo">
+                    <img src="logo.png" alt="วิทยาลัยการอาชีพพนมไพร">
+                </div>
+                <h2>วิทยาลัยการอาชีพพนมไพร</h2>
+                <p>ระบบรายงานการนิเทศนักศึกษาฝึกอาชีพในสถานประกอบการ</p>
+            </div>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-nid"><i class="fa-solid fa-id-card"></i> เลขประจำตัวประชาชน (13 หลัก)</label>
+                    <input type="text" id="login-nid" required placeholder="กรอกเลขบัตรประชาชน 13 หลัก" maxlength="17" autocomplete="username">
+                </div>
+                <div class="form-group mt-12">
+                    <label for="login-password"><i class="fa-solid fa-lock"></i> รหัสผ่าน</label>
+                    <input type="password" id="login-password" required placeholder="กรอกรหัสผ่านของคุณ" autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn btn-primary mt-16 w-100"><i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ</button>
+            </form>
+            <div class="login-footer">
+                <p>กรณีลืมรหัสผ่านหรือเข้าใช้งานไม่ได้ กรุณาติดต่อฝ่ายวิชาการ</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. MAIN APPLICATION CONTAINER -->
+    <div id="app-container" class="app-container" style="display: none;">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-logo">
+                    <img src="logo.png" alt="Logo">
+                </div>
+                <div class="brand-info">
+                    <h2>วิทยาลัยการอาชีพพนมไพร</h2>
+                    <p>ระบบรายงานการนิเทศนักศึกษา</p>
+                </div>
+            </div>
+            
+            <div class="user-profile-section">
+                <div class="avatar" id="user-avatar">
+                    <i class="fa-solid fa-user-tie"></i>
+                </div>
+                <div class="user-details">
+                    <h4 id="user-fullname">กำลังโหลด...</h4>
+                    <span class="role-badge teacher" id="user-role">ครูนิเทศก์</span>
+                </div>
+            </div>
+
+            <!-- Navigation menus (Modified dynamically via roles) -->
+            <nav class="sidebar-nav">
+                <!-- Teacher Menu -->
+                <ul id="menu-teacher" class="role-menu">
+                    <li class="active" data-tab="teacher-dashboard">
+                        <a href="#dashboard"><i class="fa-solid fa-chart-line"></i> ภาพรวมระบบ</a>
+                    </li>
+                    <li data-tab="new-report">
+                        <a href="#new-report"><i class="fa-solid fa-file-pen"></i> บันทึกรายงานการนิเทศ</a>
+                    </li>
+                    <li data-tab="teacher-history">
+                        <a href="#teacher-history"><i class="fa-solid fa-clock-rotate-left"></i> ประวัติการนิเทศ</a>
+                    </li>
+                </ul>
+
+                <!-- Admin Menu -->
+                <ul id="menu-admin" class="role-menu" style="display: none;">
+                    <li class="active" data-tab="admin-dashboard">
+                        <a href="#admin-dashboard"><i class="fa-solid fa-square-poll-vertical"></i> แดชบอร์ดสรุปผล</a>
+                    </li>
+                    <li data-tab="admin-teachers">
+                        <a href="#admin-teachers"><i class="fa-solid fa-users-gear"></i> จัดการบัญชีครูนิเทศก์</a>
+                    </li>
+                    <li data-tab="admin-criteria">
+                        <a href="#admin-criteria"><i class="fa-solid fa-list-check"></i> จัดการหัวข้อประเมิน</a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="btn btn-outline w-100" id="btn-logout" style="color: #ff8a8a; border-color: rgba(255, 138, 138, 0.4); background: rgba(255,138,138,0.05);">
+                    <i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ
+                </button>
+                <p class="mt-12">&copy; 2026 วิทยาลัยการอาชีพพนมไพร</p>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <div class="toggle-sidebar" id="sidebar-toggle">
+                    <i class="fa-solid fa-bars"></i>
+                </div>
+                <div class="page-title-area">
+                    <h1 id="page-title">ภาพรวมระบบ</h1>
+                </div>
+                <div class="header-actions">
+                    <span id="current-dept-badge" style="background-color: var(--primary-light); color: var(--text-white); padding: 4px 12px; border-radius: 20px; font-size: 12px;">แผนกวิชา</span>
+                </div>
+            </header>
+
+            <!-- ================= TEACHER TABS ================= -->
+            
+            <!-- Tab: Teacher Dashboard -->
+            <section id="tab-teacher-dashboard" class="tab-content role-section teacher-section active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-blue-light">
+                            <i class="fa-solid fa-file-invoice"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>รายงานสะสมของคุณ</h3>
+                            <p class="stat-number" id="t-stat-my-reports">0</p>
+                            <span class="stat-trend trend-up"><i class="fa-solid fa-check-double"></i> บันทึกเข้าระบบเรียบร้อย</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon bg-green-light">
+                            <i class="fa-solid fa-user-graduate"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>นักศึกษาที่ได้รับการนิเทศ</h3>
+                            <p class="stat-number" id="t-stat-students">0</p>
+                            <span class="stat-trend"><i class="fa-solid fa-users"></i> คนในการดูแลของคุณ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Supervision History -->
+                <div class="dashboard-card mt-24">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-clock-rotate-left"></i> ประวัติการนิเทศล่าสุดของคุณ</h3>
+                        <button class="btn btn-primary btn-goto-tab" data-target="new-report">
+                            <i class="fa-solid fa-plus"></i> บันทึกรายงานการนิเทศใหม่
+                        </button>
+                    </div>
+                    <div class="card-body overflow-x">
+                        <table class="table" id="teacher-recent-table">
+                            <thead>
+                                <tr>
+                                    <th>วันที่นิเทศ</th>
+                                    <th>ภาคเรียน / ปีการศึกษา</th>
+                                    <th>สถานประกอบการ</th>
+                                    <th>จำนวนนักศึกษา</th>
+                                    <th>คะแนนเฉลี่ย</th>
+                                    <th>สรุปผลการประเมิน</th>
+                                    <th>การจัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Load via AJAX -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab: New Supervision Form -->
+            <section id="tab-new-report" class="tab-content role-section teacher-section">
+                <form id="form-supervision-real" enctype="multipart/form-data">
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-file-pen"></i> แบบรายงานการนิเทศนักศึกษาฝึกงาน</h3>
+                        </div>
+                        <div class="card-body">
+                            <!-- Basic Config -->
+                            <div class="form-section">
+                                <h4><i class="fa-solid fa-circle-info"></i> ข้อมูลการนิเทศเบื้องต้น</h4>
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label for="form-semester">ภาคเรียนที่ <span class="required">*</span></label>
+                                        <select id="form-semester" name="semester" required>
+                                            <option value="1">ภาคเรียนที่ 1</option>
+                                            <option value="2">ภาคเรียนที่ 2</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="form-year">ปีการศึกษา (พ.ศ.) <span class="required">*</span></label>
+                                        <select id="form-year" name="academic_year" required>
+                                            <option value="2569">2569</option>
+                                            <option value="2568" selected>2568</option>
+                                            <option value="2567">2567</option>
+                                            <option value="2566">2566</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-row-2 mt-12">
+                                    <div class="form-group">
+                                        <label for="form-date-real">วันที่นิเทศ <span class="required">*</span></label>
+                                        <input type="date" id="form-date-real" name="supervision_date" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="form-supervisor-real">ผู้นิเทศ <span class="required">*</span></label>
+                                        <input type="text" id="form-supervisor-real" readonly style="background-color:#e2e8f0;">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Part 1: Company details -->
+                            <div class="form-section mt-16">
+                                <h4><i class="fa-solid fa-building"></i> ตอนที่ 1: ข้อมูลสถานประกอบการ</h4>
+                                <div class="form-group">
+                                    <label for="form-comp-name">ชื่อสถานประกอบการ <span class="required">*</span></label>
+                                    <input type="text" id="form-comp-name" name="company_name" required placeholder="กรอกชื่อสถานประกอบการ/บริษัท/หจก.">
+                                </div>
+                                <div class="form-group mt-12">
+                                    <label for="form-comp-address">ที่อยู่สถานประกอบการ <span class="required">*</span></label>
+                                    <textarea id="form-comp-address" name="company_address" required placeholder="กรอกที่อยู่สำหรับติดต่อและส่งจดหมายของสถานประกอบการ" rows="2"></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Part 2: Learners Details -->
+                            <div class="form-section mt-16">
+                                <h4><i class="fa-solid fa-users"></i> ตอนที่ 2: ข้อมูลผู้เรียน (นักศึกษาฝึกงาน)</h4>
+                                <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">สามารถเพิ่มผู้เรียนที่เข้าฝึกงานในสถานที่เดียวกันพร้อมกันได้มากกว่า 1 คน</p>
+                                
+                                <div id="students-dynamic-rows">
+                                    <!-- Dynamic rows append here -->
+                                </div>
+                                
+                                <button type="button" class="btn btn-outline mt-12" id="btn-add-student-row" style="padding: 6px 12px; font-size:12px;">
+                                    <i class="fa-solid fa-plus-circle"></i> เพิ่มรายชื่อผู้เรียน
+                                </button>
+                            </div>
+
+                            <!-- Part 3: Evaluation Criteria Matrix -->
+                            <div class="form-section mt-16">
+                                <h4><i class="fa-solid fa-list-check"></i> ตอนที่ 3: แบบประเมินผลการนิเทศ</h4>
+                                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">
+                                    เกณฑ์การประเมิน: <strong>4</strong> = ดีมาก, <strong>3</strong> = ดี, <strong>2</strong> = พอใช้, <strong>1</strong> = ควรปรับปรุง
+                                </p>
+
+                                <div class="evaluation-matrix-container">
+                                    <table class="evaluation-table">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 5%;">ที่</th>
+                                                <th style="width: 55%; text-align: left;">รายการประเมิน</th>
+                                                <th style="width: 40%; text-align: center;">คะแนนผลการประเมิน</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Row 1 -->
+                                            <tr>
+                                                <td class="center">1</td>
+                                                <td>ตรงต่อเวลา และมาปฏิบัติงานอย่างสม่ำเสมอ</td>
+                                                <td class="center radios-cell">
+                                                    <label class="radio-lbl"><input type="radio" name="score_1" value="4" required> 4</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_1" value="3"> 3</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_1" value="2"> 2</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_1" value="1"> 1</label>
+                                                </td>
+                                            </tr>
+                                            <!-- Row 2 -->
+                                            <tr>
+                                                <td class="center">2</td>
+                                                <td>การแต่งกายสุภาพเรียบร้อยและถูกระเบียบ</td>
+                                                <td class="center radios-cell">
+                                                    <label class="radio-lbl"><input type="radio" name="score_2" value="4" required> 4</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_2" value="3"> 3</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_2" value="2"> 2</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_2" value="1"> 1</label>
+                                                </td>
+                                            </tr>
+                                            <!-- Row 3 -->
+                                            <tr>
+                                                <td class="center">3</td>
+                                                <td>ปฏิบัติงานตามคำสั่งและวางตนอยู่ในระเบียบวินัย</td>
+                                                <td class="center radios-cell">
+                                                    <label class="radio-lbl"><input type="radio" name="score_3" value="4" required> 4</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_3" value="3"> 3</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_3" value="2"> 2</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_3" value="1"> 1</label>
+                                                </td>
+                                            </tr>
+                                            <!-- Row 4 -->
+                                            <tr>
+                                                <td class="center">4</td>
+                                                <td>ซื่อสัตย์ สุจริต อดทน และขยันขันแข็งในการทำงาน</td>
+                                                <td class="center radios-cell">
+                                                    <label class="radio-lbl"><input type="radio" name="score_4" value="4" required> 4</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_4" value="3"> 3</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_4" value="2"> 2</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_4" value="1"> 1</label>
+                                                </td>
+                                            </tr>
+                                            <!-- Row 5 -->
+                                            <tr>
+                                                <td class="center">5</td>
+                                                <td>มีความตั้งใจและสนใจใฝ่รู้ในงานอยู่เสมอ</td>
+                                                <td class="center radios-cell">
+                                                    <label class="radio-lbl"><input type="radio" name="score_5" value="4" required> 4</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_5" value="3"> 3</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_5" value="2"> 2</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_5" value="1"> 1</label>
+                                                </td>
+                                            </tr>
+                                            <!-- Row 6 -->
+                                            <tr>
+                                                <td class="center">6</td>
+                                                <td>ปฏิบัติงานถูกต้องตามลักษณะงาน</td>
+                                                <td class="center radios-cell">
+                                                    <label class="radio-lbl"><input type="radio" name="score_6" value="4" required> 4</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_6" value="3"> 3</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_6" value="2"> 2</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_6" value="1"> 1</label>
+                                                </td>
+                                            </tr>
+                                            <!-- Row 7 -->
+                                            <tr>
+                                                <td class="center">7</td>
+                                                <td>สามารถปฏิบัติงานเสร็จเรียบร้อยภายในเวลาที่กำหนด</td>
+                                                <td class="center radios-cell">
+                                                    <label class="radio-lbl"><input type="radio" name="score_7" value="4" required> 4</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_7" value="3"> 3</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_7" value="2"> 2</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_7" value="1"> 1</label>
+                                                </td>
+                                            </tr>
+                                            <!-- Row 8 -->
+                                            <tr>
+                                                <td class="center">8</td>
+                                                <td>รู้จักใช้เครื่องมือ อุปกรณ์ต่างๆ อย่างถูกต้อง และมีความระมัดระวัง</td>
+                                                <td class="center radios-cell">
+                                                    <label class="radio-lbl"><input type="radio" name="score_8" value="4" required> 4</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_8" value="3"> 3</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_8" value="2"> 2</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_8" value="1"> 1</label>
+                                                </td>
+                                            </tr>
+                                            <!-- Row 9 -->
+                                            <tr>
+                                                <td class="center">9</td>
+                                                <td>มีน้ำใจ ให้ความร่วมมือ และทำงานร่วมกับผู้อื่นได้ดี</td>
+                                                <td class="center radios-cell">
+                                                    <label class="radio-lbl"><input type="radio" name="score_9" value="4" required> 4</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_9" value="3"> 3</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_9" value="2"> 2</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_9" value="1"> 1</label>
+                                                </td>
+                                            </tr>
+                                            <!-- Row 10 -->
+                                            <tr>
+                                                <td class="center">10</td>
+                                                <td>มีความสุภาพ อ่อนน้อม รู้จักกาลเทศะ</td>
+                                                <td class="center radios-cell">
+                                                    <label class="radio-lbl"><input type="radio" name="score_10" value="4" required> 4</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_10" value="3"> 3</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_10" value="2"> 2</label>
+                                                    <label class="radio-lbl"><input type="radio" name="score_10" value="1"> 1</label>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    
+                                    <!-- Live calculated score panel -->
+                                    <div class="live-score-panel mt-12">
+                                        <span>คะแนนเฉลี่ยสะสม: <strong id="live-avg-score">0.00</strong> / 4.00</span>
+                                        <span>ผลการประเมิน: <strong id="live-eval-result" class="text-muted">-</strong></span>
+                                    </div>
+                                </div>
+
+                                <div class="form-group mt-12">
+                                    <label for="form-problems-real">ปัญหา / อุปสรรค / ข้อจำกัด</label>
+                                    <textarea id="form-problems-real" name="problems" placeholder="กรอกปัญหาการฝึกงานหรือข้อเสนอแนะที่พบ เช่น ระยะการเดินทาง, การปรับตัวของนักศึกษา" rows="2"></textarea>
+                                </div>
+                                <div class="form-group mt-12">
+                                    <label for="form-corrections-real">แนวทางการแก้ไข</label>
+                                    <textarea id="form-corrections-real" name="corrections" placeholder="กรอกคำชี้แนะหรือแนวทางช่วยเหลือในการทำงานให้นักศึกษา" rows="2"></textarea>
+                                </div>
+                                <div class="form-group mt-12">
+                                    <label for="form-suggestions-real">ข้อเสนอแนะเพิ่มเติม</label>
+                                    <textarea id="form-suggestions-real" name="suggestions" placeholder="ข้อเสนอแนะที่เป็นประโยชน์ต่อสถานศึกษาและสถานประกอบการ" rows="2"></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Part 4: Photos Upload -->
+                            <div class="form-section mt-16">
+                                <h4><i class="fa-solid fa-camera"></i> ตอนที่ 4: ภาพถ่ายประกอบการนิเทศ (สูงสุด 4 รูป)</h4>
+                                <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">อัปโหลดรูปภาพกิจกรรมการนิเทศร่วมกับพี่เลี้ยงฝึกงานและนักศึกษา (ไม่เกิน 3MB ต่อรูป)</p>
+                                
+                                <div class="photo-upload-grid">
+                                    <div class="photo-upload-box">
+                                        <label for="photo-file-1" class="upload-area">
+                                            <i class="fa-solid fa-image"></i>
+                                            <span>รูปภาพที่ 1</span>
+                                        </label>
+                                        <input type="file" id="photo-file-1" name="photo_1" accept="image/*" class="file-input-hide">
+                                        <div class="preview-container" id="preview-1"></div>
+                                    </div>
+                                    <div class="photo-upload-box">
+                                        <label for="photo-file-2" class="upload-area">
+                                            <i class="fa-solid fa-image"></i>
+                                            <span>รูปภาพที่ 2</span>
+                                        </label>
+                                        <input type="file" id="photo-file-2" name="photo_2" accept="image/*" class="file-input-hide">
+                                        <div class="preview-container" id="preview-2"></div>
+                                    </div>
+                                    <div class="photo-upload-box">
+                                        <label for="photo-file-3" class="upload-area">
+                                            <i class="fa-solid fa-image"></i>
+                                            <span>รูปภาพที่ 3</span>
+                                        </label>
+                                        <input type="file" id="photo-file-3" name="photo_3" accept="image/*" class="file-input-hide">
+                                        <div class="preview-container" id="preview-3"></div>
+                                    </div>
+                                    <div class="photo-upload-box">
+                                        <label for="photo-file-4" class="upload-area">
+                                            <i class="fa-solid fa-image"></i>
+                                            <span>รูปภาพที่ 4</span>
+                                        </label>
+                                        <input type="file" id="photo-file-4" name="photo_4" accept="image/*" class="file-input-hide">
+                                        <div class="preview-container" id="preview-4"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Part 5: Signature Pad -->
+                            <div class="form-section mt-16">
+                                <h4><i class="fa-solid fa-signature"></i> ลายเซ็นครูผู้นิเทศ <span class="required">*</span></h4>
+                                <p class="signature-hint">กรุณาลงชื่อโดยใช้นิ้วหรือเมาส์ลากเขียนในกรอบสี่เหลี่ยมด้านล่าง</p>
+                                <div class="signature-container">
+                                    <canvas id="signature-pad" width="450" height="150"></canvas>
+                                    <button type="button" class="btn-clear-sig" id="btn-clear-sig"><i class="fa-solid fa-eraser"></i> ล้างข้อมูลลายเซ็น</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary" style="padding: 12px 30px; font-size: 15px;"><i class="fa-solid fa-floppy-disk"></i> ยืนยันการประเมินและบันทึก</button>
+                        </div>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Tab: Teacher History -->
+            <section id="tab-teacher-history" class="tab-content role-section teacher-section">
+                <div class="dashboard-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-folder-open"></i> รายงานการนิเทศฝึกงานวิชาชีพทั้งหมดของคุณ</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="reports-search-bar">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" placeholder="ค้นหาข้อมูลจากประวัตินิเทศของคุณ..." id="search-teacher-history">
+                        </div>
+                        <div class="reports-grid" id="teacher-reports-list">
+                            <!-- Dynamically loaded via JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- ================= ADMIN TABS ================= -->
+
+            <!-- Tab: Admin Dashboard -->
+            <section id="tab-admin-dashboard" class="tab-content role-section admin-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-blue-light">
+                            <i class="fa-solid fa-file-invoice-dollar"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>รายงานการนิเทศทั้งหมด</h3>
+                            <p class="stat-number" id="a-stat-reports">0</p>
+                            <span class="stat-trend"><i class="fa-solid fa-check"></i> บันทึกเข้าระบบ MySQL</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon bg-gold-light">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>ครูนิเทศก์ในระบบ</h3>
+                            <p class="stat-number" id="a-stat-teachers">0</p>
+                            <span class="stat-trend"><i class="fa-solid fa-user-check"></i> บัญชีผู้ใช้งานครู</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon bg-green-light">
+                            <i class="fa-solid fa-child"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>นักศึกษาฝึกงานสะสม</h3>
+                            <p class="stat-number" id="a-stat-students">0</p>
+                            <span class="stat-trend"><i class="fa-solid fa-chart-line"></i> ได้รับการประเมิน</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin charts grouping -->
+                <div class="dashboard-details-grid">
+                    <!-- Reports per department -->
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-layer-group"></i> สรุปจำนวนการนิเทศ แยกตามแผนกวิชา</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-progress-list" id="admin-dept-chart">
+                                <!-- Load via AJAX -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reports per establishment -->
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-city"></i> สถานประกอบการที่มีการนิเทศสูงสุด (Top 5)</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-progress-list" id="admin-company-chart">
+                                <!-- Load via AJAX -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Global supervision history table -->
+                <div class="dashboard-card mt-24">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-table-list"></i> รายงานการนิเทศจากครูทุกคนในวิทยาลัย</h3>
+                        <button class="btn btn-outline" id="btn-print-summary-all"><i class="fa-solid fa-print"></i> พิมพ์สรุปการรายงานทั้งหมด</button>
+                    </div>
+                    <div class="card-body overflow-x">
+                        <table class="table" id="admin-reports-table">
+                            <thead>
+                                <tr>
+                                    <th>วันที่นิเทศ</th>
+                                    <th>ผู้นิเทศ (แผนกวิชา)</th>
+                                    <th>สถานประกอบการ</th>
+                                    <th>รายชื่อผู้เรียน</th>
+                                    <th>คะแนนเฉลี่ย</th>
+                                    <th>ผลประเมิน</th>
+                                    <th>การจัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Load via AJAX -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab: Admin Teacher Management & CSV imports -->
+            <section id="tab-admin-teachers" class="tab-content role-section admin-section">
+                <!-- CSV Import and Add Teacher buttons -->
+                <div class="dashboard-details-grid">
+                    <!-- CSV Import -->
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-file-csv"></i> นำเข้าข้อมูลครูนิเทศก์ด้วยไฟล์ CSV (Bulk Import)</h3>
+                        </div>
+                        <div class="card-body">
+                            <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">
+                                รูปแบบไฟล์ CSV: <code>เลขบัตรประชาชน(13หลัก),ชื่อ,นามสกุล,แผนกวิชา,รหัสผ่าน</code><br>
+                                * หากไม่ได้ระบุรหัสผ่านในช่องสุดท้าย ระบบจะใช้เลขบัตรประชาชน 13 หลักเป็นรหัสผ่านเริ่มต้น
+                            </p>
+                            <a href="sample_teachers.csv" download class="btn btn-outline" style="padding: 6px 12px; font-size: 11px; margin-bottom: 14px; display: inline-flex;">
+                                <i class="fa-solid fa-file-arrow-down"></i> ดาวน์โหลดไฟล์ CSV ตัวอย่าง
+                            </a>
+                            <form id="form-csv-import" enctype="multipart/form-data">
+                                <div class="form-group">
+                                    <label for="csv-file-input">เลือกไฟล์ CSV (.csv)</label>
+                                    <input type="file" id="csv-file-input" name="csv_file" accept=".csv" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary mt-12"><i class="fa-solid fa-file-import"></i> นำเข้าข้อมูลครู</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Individual Teacher Add -->
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-user-plus"></i> เพิ่มครูนิเทศก์เป็นรายบุคคล</h3>
+                        </div>
+                        <div class="card-body">
+                            <form id="form-teacher-add">
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label for="t-nid">เลขบัตรประชาชน (13 หลัก) <span class="required">*</span></label>
+                                        <input type="text" id="t-nid" required placeholder="เลขบัตรประชาชน 13 หลัก" maxlength="13">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="t-password">กำหนดรหัสผ่าน <span class="required">*</span></label>
+                                        <input type="password" id="t-password" required placeholder="ตั้งรหัสผ่านล็อกอิน">
+                                    </div>
+                                </div>
+                                <div class="form-row-2 mt-12">
+                                    <div class="form-group" style="grid-column: 1 / -1;">
+                                        <label for="t-name">ชื่อครู <span class="required">*</span></label>
+                                        <input type="text" id="t-name" required placeholder="ระบุชื่อจริง">
+                                    </div>
+                                </div>
+                                <div class="form-row-2 mt-12">
+                                    <div class="form-group">
+                                        <label for="t-lastname">นามสกุล <span class="required">*</span></label>
+                                        <input type="text" id="t-lastname" required placeholder="ระบุนามสกุล">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="t-dept">แผนกวิชา <span class="required">*</span></label>
+                                        <select id="t-dept" required>
+                                            <option value="แผนกวิชาช่างยนต์">แผนกวิชาช่างยนต์</option>
+                                            <option value="แผนกวิชาช่างไฟฟ้ากำลัง">แผนกวิชาช่างไฟฟ้ากำลัง</option>
+                                            <option value="แผนกวิชาช่างอิเล็กทรอนิกส์">แผนกวิชาช่างอิเล็กทรอนิกส์</option>
+                                            <option value="แผนกวิชาช่างกลโรงงาน">แผนกวิชาช่างกลโรงงาน</option>
+                                            <option value="แผนกวิชาการบัญชี">แผนกวิชาการบัญชี</option>
+                                            <option value="แผนกวิชาคอมพิวเตอร์ธุรกิจ">แผนกวิชาคอมพิวเตอร์ธุรกิจ</option>
+                                            <option value="แผนกวิชาเทคโนโลยีธุรกิจดิจิทัล">แผนกวิชาเทคโนโลยีธุรกิจดิจิทัล</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary mt-16"><i class="fa-solid fa-circle-plus"></i> บันทึกรายชื่อครู</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teachers list table -->
+                <div class="dashboard-card mt-24">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-users"></i> บัญชีรายชื่อครูนิเทศก์ทั้งหมดในระบบ</h3>
+                    </div>
+                    <div class="card-body overflow-x">
+                        <table class="table" id="admin-teachers-table">
+                            <thead>
+                                <tr>
+                                    <th>เลขบัตรประชาชน</th>
+                                    <th>ชื่อ-นามสกุล</th>
+                                    <th>แผนกวิชา</th>
+                                    <th>สิทธิ์การใช้งาน</th>
+                                    <th>การจัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Load via AJAX -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab: Admin Criteria Management -->
+            <section id="tab-admin-criteria" class="tab-content role-section admin-section">
+                <div class="dashboard-details-grid">
+                    <!-- Add Criteria Form -->
+                    <div class="dashboard-card" style="grid-column: 1 / -1;">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-square-plus"></i> เพิ่มหัวข้อการประเมินใหม่</h3>
+                        </div>
+                        <div class="card-body">
+                            <form id="form-criteria-add">
+                                <div class="form-group">
+                                    <label for="crit-title">ชื่อหัวข้อการประเมิน <span class="required">*</span></label>
+                                    <input type="text" id="crit-title" required placeholder="เช่น ตรงต่อเวลา และมาปฏิบัติงานอย่างสม่ำเสมอ">
+                                </div>
+                                <button type="submit" class="btn btn-primary mt-12"><i class="fa-solid fa-circle-plus"></i> เพิ่มเกณฑ์ประเมิน</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Criteria list table -->
+                <div class="dashboard-card mt-24">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-list-check"></i> หัวข้อการประเมินในระบบทั้งหมด</h3>
+                    </div>
+                    <div class="card-body overflow-x">
+                        <table class="table" id="admin-criteria-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 10%;">ลำดับที่</th>
+                                    <th style="width: 70%;">หัวข้อการประเมิน</th>
+                                    <th style="width: 20%;">การจัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Load via AJAX -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- DETAIL VIEW MODAL (WITH PRINT TRIGGERS) -->
+    <div class="modal-backdrop" id="detail-modal">
+        <div class="modal-container detail-modal">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-file-invoice"></i> รายละเอียดการนิเทศนักศึกษา</h3>
+                <button class="btn-close-modal" id="btn-close-detail-modal">&times;</button>
+            </div>
+            <div class="modal-body" id="detail-modal-body">
+                <!-- Loaded dynamically via JS -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="btn-print-report"><i class="fa-solid fa-print"></i> พิมพ์เอกสาร</button>
+                <button class="btn btn-primary" id="btn-close-detail-footer">ปิดหน้าต่าง</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 3. OFFICIAL THAI GOVERNMENT PRINT FORMAT (HIDDEN BY DEFAULT, SHOWN IN PRINT) ================= -->
+    <div id="print-layout-container">
+        <!-- Rendered in CSS print mode dynamically when window.print() is fired -->
+    </div>
+
+    <!-- Toast Notification container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Custom JS -->
+    <script src="app.js"></script>
+</body>
+</html>
