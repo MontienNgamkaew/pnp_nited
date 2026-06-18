@@ -1336,7 +1336,7 @@ textarea:focus {
         background-color: #ffffff;
         font-family: "TH Sarabun New", "TH Sarabun PSK", "Sarabun", sans-serif;
         font-size: 16pt;
-        line-height: 1.5;
+        line-height: 1.2;
         padding: 0px;
         margin: 0px;
     }
@@ -1357,7 +1357,7 @@ textarea:focus {
 
     .print-header-logo {
         text-align: center;
-        margin-bottom: 15px;
+        margin-bottom: 6px;
     }
 
     .print-header-logo img {
@@ -1370,29 +1370,29 @@ textarea:focus {
         text-align: center;
         font-weight: bold;
         font-size: 18pt;
-        margin-bottom: 20px;
+        margin-bottom: 10px;
     }
 
     .print-section-title {
         font-weight: bold;
         font-size: 18pt;
         border-bottom: 1px solid #000000;
-        margin-top: 15px;
-        margin-bottom: 8px;
-        padding-bottom: 4px;
+        margin-top: 8px;
+        margin-bottom: 3px;
+        padding-bottom: 1px;
     }
 
     .print-table {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 8px;
-        margin-bottom: 12px;
+        margin-top: 4px;
+        margin-bottom: 6px;
         font-size: 16pt;
     }
 
     .print-table th, .print-table td {
         border: 1px solid #000000;
-        padding: 6px 10px;
+        padding: 4px 8px;
         text-align: left;
     }
 
@@ -1421,14 +1421,14 @@ textarea:focus {
 
     .print-textbox {
         border: 1px solid #000000;
-        padding: 10px;
-        min-height: 60px;
-        margin-top: 4px;
+        padding: 5px 8px;
+        min-height: 35px;
+        margin-top: 2px;
         font-size: 16pt;
     }
 
     .print-signatures-area {
-        margin-top: 40px;
+        margin-top: 15px;
         display: flex;
         justify-content: flex-end;
         text-align: center;

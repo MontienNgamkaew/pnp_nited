@@ -1244,7 +1244,7 @@ function compileOfficialThaiGovernmentPrintDocument(r) {
                 <td style="text-align:center;">${idx+1}</td>
                 <td>${s.student_name}</td>
                 <td style="text-align:center;">${s.level} ปีที่ ${s.year}</td>
-                <td>แผนกวิชา ${s.major}</td>
+                <td>${s.major}</td>
             </tr>
         `;
     }).join('');
