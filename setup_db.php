@@ -4,10 +4,10 @@
 header('Content-Type: text/html; charset=utf-8');
 
 $host = getenv('DB_HOST') ?: 'localhost';
-$user = getenv('DB_USER') ?: 'root';
-$pass = getenv('DB_PASSWORD') !== false ? getenv('DB_PASSWORD') : '';
+$user = getenv('DB_USER') ?: 'u651170081_pnp_nited';
+$pass = getenv('DB_PASSWORD') !== false ? getenv('DB_PASSWORD') : 'a1d9GH10%';
 $port = getenv('DB_PORT') ?: '3306';
-$db_name = getenv('DB_NAME') ?: 'pnp_nited_db';
+$db_name = getenv('DB_NAME') ?: 'u651170081_pnp_nited';
 
 try {
     // 1. Connect to MySQL (try connecting directly to assigned DB first)

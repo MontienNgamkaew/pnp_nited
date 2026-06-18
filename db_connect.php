@@ -2,9 +2,9 @@
 // db_connect.php - Database connection parameters
 
 $host = getenv('DB_HOST') ?: 'localhost';
-$db   = getenv('DB_NAME') ?: 'pnp_nited_db';
-$user = getenv('DB_USER') ?: 'root';
-$pass = getenv('DB_PASSWORD') !== false ? getenv('DB_PASSWORD') : '';
+$db   = getenv('DB_NAME') ?: 'u651170081_pnp_nited';
+$user = getenv('DB_USER') ?: 'u651170081_pnp_nited';
+$pass = getenv('DB_PASSWORD') !== false ? getenv('DB_PASSWORD') : 'a1d9GH10%';
 $port = getenv('DB_PORT') ?: '3306';
 $charset = 'utf8mb4';
 
