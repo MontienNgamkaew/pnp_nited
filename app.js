@@ -9,6 +9,52 @@ let isDrawing = false;
 let hasSigned = false;
 let activeCriteria = [];
 
+// Compressed image Blobs storage
+let compressedPhotos = {
+    1: null,
+    2: null,
+    3: null,
+    4: null
+};
+
+// Helper to compress image files on client-side using canvas
+function compressImage(file, callback) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 1200;
+            const MAX_HEIGHT = 1200;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+                if (width > MAX_WIDTH) {
+                    height *= MAX_WIDTH / width;
+                    width = MAX_WIDTH;
+                }
+            } else {
+                if (height > MAX_HEIGHT) {
+                    width *= MAX_HEIGHT / height;
+                    height = MAX_HEIGHT;
+                }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob(function(blob) {
+                callback(blob);
+            }, 'image/jpeg', 0.8);
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
 // Departments list of Phanom Phrai Industrial and Community Education College
 const PHANOMPHRAI_DEPTS = [
     "แผนกวิชาช่างยนต์",
@@ -388,17 +434,25 @@ function setupPhotoUploadPreviews() {
         if (input && preview) {
             input.addEventListener('change', function() {
                 if (this.files && this.files[0]) {
-                    const reader = new FileReader();
+                    const file = this.files[0];
+                    showToast(`กำลังประมวลผลและบีบอัดรูปภาพที่ ${i}...`, 'info');
                     
-                    reader.onload = (e) => {
+                    compressImage(file, function(blob) {
+                        compressedPhotos[i] = blob;
+                        
+                        // Set the photo_keep flag to 0 since a new image is selected
+                        const keepInput = document.getElementById(`photo-keep-${i}`);
+                        if (keepInput) keepInput.value = '0';
+                        
+                        // Render preview using object URL for memory efficiency
+                        const url = URL.createObjectURL(blob);
                         preview.innerHTML = `
-                            <img src="${e.target.result}" alt="Preview image ${i}">
+                            <img src="${url}" alt="Preview image ${i}">
                             <button type="button" class="btn-remove-img" onclick="clearPhotoInput(${i})" title="ลบรูปภาพ">&times;</button>
                         `;
                         preview.style.display = 'block';
-                    };
-                    
-                    reader.readAsDataURL(this.files[0]);
+                        showToast(`บีบอัดรูปภาพที่ ${i} สำเร็จ`, 'success');
+                    });
                 }
             });
         }
@@ -415,6 +469,7 @@ window.clearPhotoInput = function(slot) {
     }
     const keepInput = document.getElementById(`photo-keep-${slot}`);
     if (keepInput) keepInput.value = '0';
+    compressedPhotos[slot] = null;
 };
 
 // ==========================================
@@ -547,6 +602,17 @@ function setupFormSubmissions() {
 
             // Setup FormData
             const formData = new FormData(this);
+            
+            // Override photo fields with client-side compressed Blobs
+            for (let i = 1; i <= 4; i++) {
+                if (compressedPhotos[i]) {
+                    formData.set(`photo_${i}`, compressedPhotos[i], `photo_${i}.jpg`);
+                } else {
+                    // Remove raw empty files to prevent server processing
+                    formData.delete(`photo_${i}`);
+                }
+            }
+
             if (hasSigned) {
                 const signatureData = document.getElementById('signature-pad').toDataURL();
                 formData.append('signature', signatureData);

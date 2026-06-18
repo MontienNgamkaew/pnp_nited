@@ -254,7 +254,16 @@ function handleAdd($pdo) {
 
     for ($i = 1; $i <= 4; $i++) {
         $field_name = "photo_$i";
-        if (isset($_FILES[$field_name]) && $_FILES[$field_name]['error'] === UPLOAD_ERR_OK) {
+        if (isset($_FILES[$field_name]) && $_FILES[$field_name]['error'] !== UPLOAD_ERR_NO_FILE) {
+            if ($_FILES[$field_name]['error'] !== UPLOAD_ERR_OK) {
+                $err_code = $_FILES[$field_name]['error'];
+                $err_msg = "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพที่ $i (รหัสข้อผิดพลาด: $err_code)";
+                if ($err_code === UPLOAD_ERR_INI_SIZE || $err_code === UPLOAD_ERR_FORM_SIZE) {
+                    $err_msg = "ไฟล์รูปภาพที่ $i ขนาดใหญ่เกินความจุที่เซิร์ฟเวอร์รองรับ";
+                }
+                echo json_encode(['status' => 'error', 'message' => $err_msg]);
+                exit;
+            }
             $file_tmp = $_FILES[$field_name]['tmp_name'];
             $file_name = $_FILES[$field_name]['name'];
             $file_size = $_FILES[$field_name]['size'];
@@ -460,7 +469,16 @@ function handleEdit($pdo) {
 
         for ($i = 1; $i <= 4; $i++) {
             $field_name = "photo_$i";
-            if (isset($_FILES[$field_name]) && $_FILES[$field_name]['error'] === UPLOAD_ERR_OK) {
+            if (isset($_FILES[$field_name]) && $_FILES[$field_name]['error'] !== UPLOAD_ERR_NO_FILE) {
+                if ($_FILES[$field_name]['error'] !== UPLOAD_ERR_OK) {
+                    $err_code = $_FILES[$field_name]['error'];
+                    $err_msg = "เกิดข้อผิดพลาดในการอัปโหลดรูปภาพที่ $i (รหัสข้อผิดพลาด: $err_code)";
+                    if ($err_code === UPLOAD_ERR_INI_SIZE || $err_code === UPLOAD_ERR_FORM_SIZE) {
+                        $err_msg = "ไฟล์รูปภาพที่ $i ขนาดใหญ่เกินความจุที่เซิร์ฟเวอร์รองรับ";
+                    }
+                    echo json_encode(['status' => 'error', 'message' => $err_msg]);
+                    exit;
+                }
                 $file_tmp = $_FILES[$field_name]['tmp_name'];
                 $file_name = $_FILES[$field_name]['name'];
                 $file_size = $_FILES[$field_name]['size'];
