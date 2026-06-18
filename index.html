@@ -12,7 +12,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=1.0.1">
 </head>
 <body>
 
@@ -175,12 +175,16 @@
                 </div>
             </section>
 
-            <!-- Tab: New Supervision Form -->
             <section id="tab-new-report" class="tab-content role-section teacher-section">
                 <form id="form-supervision-real" enctype="multipart/form-data">
+                    <input type="hidden" id="form-supervision-id" name="id" value="">
+                    <input type="hidden" id="photo-keep-1" name="photo_keep_1" value="0">
+                    <input type="hidden" id="photo-keep-2" name="photo_keep_2" value="0">
+                    <input type="hidden" id="photo-keep-3" name="photo_keep_3" value="0">
+                    <input type="hidden" id="photo-keep-4" name="photo_keep_4" value="0">
                     <div class="dashboard-card">
                         <div class="card-header">
-                            <h3><i class="fa-solid fa-file-pen"></i> แบบรายงานการนิเทศนักศึกษาฝึกงาน</h3>
+                            <h3><i class="fa-solid fa-file-pen"></i> <span id="form-supervision-title">แบบรายงานการนิเทศนักศึกษาฝึกงาน</span></h3>
                         </div>
                         <div class="card-body">
                             <!-- Basic Config -->
@@ -446,7 +450,7 @@
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="submit" class="btn btn-primary" style="padding: 12px 30px; font-size: 15px;"><i class="fa-solid fa-floppy-disk"></i> ยืนยันการประเมินและบันทึก</button>
+                            <button type="submit" id="btn-supervision-submit" class="btn btn-primary" style="padding: 12px 30px; font-size: 15px;"><i class="fa-solid fa-floppy-disk"></i> ยืนยันการประเมินและบันทึก</button>
                         </div>
                     </div>
                 </form>
@@ -735,6 +739,6 @@
     <!-- html2pdf.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <!-- Custom JS -->
-    <script src="app.js"></script>
+    <script src="app.js?v=1.0.1"></script>
 </body>
 </html>

@@ -177,12 +177,13 @@ function switchTab(tabName) {
     };
     document.getElementById('page-title').textContent = titles[tabName] || 'ระบบรายงานการนิเทศ';
 
+    let p = Promise.resolve();
     if (tabName === 'teacher-dashboard') {
         loadTeacherDashboard();
     } else if (tabName === 'teacher-history') {
         loadTeacherHistoryList();
     } else if (tabName === 'new-report') {
-        resetSupervisionForm();
+        p = resetSupervisionForm();
     } else if (tabName === 'admin-dashboard') {
         loadAdminDashboard();
     } else if (tabName === 'admin-teachers') {
@@ -192,6 +193,7 @@ function switchTab(tabName) {
     }
 
     document.querySelector('.sidebar').classList.remove('active');
+    return p;
 }
 
 // ==========================================
@@ -281,11 +283,11 @@ window.removeStudentInputRow = function(rowId) {
 // ==========================================
 function loadActiveCriteriaForm() {
     const tbody = document.querySelector('.evaluation-table tbody');
-    if (!tbody) return;
+    if (!tbody) return Promise.resolve();
 
     tbody.innerHTML = '<tr><td colspan="3" class="center">กำลังโหลดหัวข้อประเมิน...</td></tr>';
 
-    fetch('api_supervision.php?action=list_criteria')
+    return fetch('api_supervision.php?action=list_criteria')
         .then(res => res.json())
         .then(res => {
             if (res.status === 'success') {
@@ -411,6 +413,8 @@ window.clearPhotoInput = function(slot) {
         preview.innerHTML = '';
         preview.style.display = 'none';
     }
+    const keepInput = document.getElementById(`photo-keep-${slot}`);
+    if (keepInput) keepInput.value = '0';
 };
 
 // ==========================================
@@ -501,7 +505,7 @@ function resizeSignatureCanvas() {
 // Form Submissions
 // ==========================================
 function setupFormSubmissions() {
-    // 1. Submit New Supervision Report
+    // 1. Submit New/Edit Supervision Report
     const formSupervision = document.getElementById('form-supervision-real');
     if (formSupervision) {
         formSupervision.addEventListener('submit', function(e) {
@@ -535,27 +539,33 @@ function setupFormSubmissions() {
             }
 
             // Validate signature drawing
-            if (!hasSigned) {
+            const isEdit = document.getElementById('form-supervision-id').value !== '';
+            if (!isEdit && !hasSigned) {
                 showToast('กรุณาลงลายมือชื่อผู้ทำการนิเทศ', 'error');
                 return;
             }
 
-            const signatureData = document.getElementById('signature-pad').toDataURL();
-
             // Setup FormData
             const formData = new FormData(this);
-            formData.append('signature', signatureData);
+            if (hasSigned) {
+                const signatureData = document.getElementById('signature-pad').toDataURL();
+                formData.append('signature', signatureData);
+            } else {
+                formData.append('signature', 'keep');
+            }
 
             showToast('กำลังส่งข้อมูลรายงาน...', 'info');
             
-            fetch('api_supervision.php?action=add', {
+            const endpoint = isEdit ? 'api_supervision.php?action=edit' : 'api_supervision.php?action=add';
+            
+            fetch(endpoint, {
                 method: 'POST',
                 body: formData
             })
             .then(res => res.json())
             .then(res => {
                 if (res.status === 'success') {
-                    showToast('บันทึกข้อมูลรายงานการนิเทศงานเสร็จสมบูรณ์!', 'success');
+                    showToast(isEdit ? 'แก้ไขข้อมูลรายงานการนิเทศงานเสร็จสมบูรณ์!' : 'บันทึกข้อมูลรายงานการนิเทศงานเสร็จสมบูรณ์!', 'success');
                     switchTab('teacher-dashboard');
                 } else {
                     showToast(res.message || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล', 'error');
@@ -686,6 +696,23 @@ function resetSupervisionForm() {
     if (form) {
         form.reset();
         
+        // Reset edit states
+        const formId = document.getElementById('form-supervision-id');
+        if (formId) formId.value = '';
+        
+        const formTitle = document.getElementById('form-supervision-title');
+        if (formTitle) formTitle.textContent = 'แบบรายงานการนิเทศนักศึกษาฝึกงาน';
+        
+        const submitBtn = document.getElementById('btn-supervision-submit');
+        if (submitBtn) {
+            submitBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> ยืนยันการประเมินและบันทึก';
+        }
+        
+        for (let i = 1; i <= 4; i++) {
+            const keepInput = document.getElementById(`photo-keep-${i}`);
+            if (keepInput) keepInput.value = '0';
+        }
+        
         const dynamicDiv = document.getElementById('students-dynamic-rows');
         if (dynamicDiv) {
             dynamicDiv.innerHTML = '';
@@ -696,7 +723,7 @@ function resetSupervisionForm() {
         document.getElementById('live-eval-result').textContent = '-';
         document.getElementById('live-eval-result').className = 'text-muted';
 
-        loadActiveCriteriaForm();
+        const p = loadActiveCriteriaForm();
         clearCanvasDrawing();
         
         for (let i = 1; i <= 4; i++) {
@@ -710,7 +737,10 @@ function resetSupervisionForm() {
         setTimeout(() => {
             resizeSignatureCanvas();
         }, 150);
+
+        return p;
     }
+    return Promise.resolve();
 }
 
 function clearCanvasDrawing() {
@@ -756,9 +786,17 @@ function loadTeacherDashboard() {
                             <td><span class="score-indicator"><i class="fa-solid fa-star"></i> ${r.score_avg}</span></td>
                             <td><span class="status-badge ${getEvalClass(r.eval_result)}">${r.eval_result}</span></td>
                             <td>
-                                <button class="btn btn-outline" style="padding: 4px 8px; font-size:11px;" onclick="openDetailModal('${r.id}')">
-                                    <i class="fa-solid fa-eye"></i> ดูผลลัพธ์
-                                </button>
+                                <div class="actions-cell-buttons">
+                                    <button class="btn btn-outline" style="padding: 4px 8px; font-size:11px;" onclick="openDetailModal('${r.id}')" title="ดูรายละเอียด">
+                                        <i class="fa-solid fa-eye"></i> ดูผลลัพธ์
+                                    </button>
+                                    <button class="btn btn-warning" style="padding: 4px 8px; font-size:11px;" onclick="editSupervisionReport('${r.id}')" title="แก้ไขรายงาน">
+                                        <i class="fa-solid fa-edit"></i> แก้ไข
+                                    </button>
+                                    <button class="btn btn-danger" style="padding: 4px 8px; font-size:11px;" onclick="deleteSupervisionReport('${r.id}')" title="ลบรายงาน">
+                                        <i class="fa-solid fa-trash"></i> ลบ
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     `;
@@ -822,11 +860,21 @@ function renderHistoryCards(reportList) {
                         <span>ภาคเรียน: <strong>${r.semester}/${r.academic_year}</strong></span>
                     </div>
                 </div>
-                <div class="report-card-footer">
-                    <span>ผู้นิเทศ: ${r.teacher_name} ${r.teacher_lastname}</span>
-                    <button class="btn btn-outline" style="padding: 4px 8px; font-size:11px;" onclick="openDetailModal('${r.id}')">
-                        ดูรายละเอียด <i class="fa-solid fa-chevron-right"></i>
-                    </button>
+                <div class="report-card-footer" style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <span style="font-size: 12px; color: var(--text-muted); text-align: left;">ผู้นิเทศ: ${r.teacher_name} ${r.teacher_lastname}</span>
+                        <button class="btn btn-outline" style="padding: 4px 8px; font-size:11px;" onclick="openDetailModal('${r.id}')">
+                            ดูรายละเอียด <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 6px; width: 100%; border-top: 1px solid #eee; padding-top: 8px;">
+                        <button class="btn btn-warning" style="padding: 4px 8px; font-size:11px;" onclick="editSupervisionReport('${r.id}')">
+                            <i class="fa-solid fa-edit"></i> แก้ไข
+                        </button>
+                        <button class="btn btn-danger" style="padding: 4px 8px; font-size:11px;" onclick="deleteSupervisionReport('${r.id}')">
+                            <i class="fa-solid fa-trash"></i> ลบ
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
@@ -902,9 +950,14 @@ function loadAdminDashboard() {
                                 <td><span class="score-indicator"><i class="fa-solid fa-star"></i> ${r.score_avg}</span></td>
                                 <td><span class="status-badge ${getEvalClass(r.eval_result)}">${r.eval_result}</span></td>
                                 <td>
-                                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11px;" onclick="openDetailModal('${r.id}')">
-                                        <i class="fa-solid fa-eye"></i> ดูผลงาน
-                                    </button>
+                                    <div class="actions-cell-buttons">
+                                        <button class="btn btn-outline" style="padding: 4px 8px; font-size: 11px;" onclick="openDetailModal('${r.id}')">
+                                            <i class="fa-solid fa-eye"></i> ดูผลงาน
+                                        </button>
+                                        <button class="btn btn-danger" style="padding: 4px 8px; font-size: 11px;" onclick="deleteSupervisionReport('${r.id}')">
+                                            <i class="fa-solid fa-trash"></i> ลบ
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         `;
@@ -1082,6 +1135,146 @@ window.deleteTeacherAccount = function(id, name) {
         });
     }
 };
+
+// ==========================================
+// Edit and Delete Supervision Reports
+// ==========================================
+function editSupervisionReport(reportId) {
+    showToast('กำลังโหลดข้อมูลรายงาน...', 'info');
+    
+    fetch(`api_supervision.php?action=get&id=${reportId}`)
+        .then(res => res.json())
+        .then(res => {
+            if (res.status !== 'success') {
+                showToast(res.message || 'ไม่สามารถโหลดข้อมูลรายงานได้', 'error');
+                return;
+            }
+            
+            const report = res.data;
+            
+            // Switch to the form tab. This resets the form and loads active criteria.
+            switchTab('new-report').then(() => {
+                // Now fill the form with report details
+                document.getElementById('form-supervision-id').value = report.id;
+                
+                // Change UI titles and buttons
+                document.getElementById('form-supervision-title').textContent = 'แก้ไขรายงานการนิเทศนักศึกษาฝึกงาน';
+                
+                const submitBtn = document.getElementById('btn-supervision-submit');
+                if (submitBtn) {
+                    submitBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> บันทึกการแก้ไข';
+                }
+                
+                // Prefill basic fields
+                document.getElementById('form-semester').value = report.semester;
+                document.getElementById('form-year').value = report.academic_year;
+                document.getElementById('form-date-real').value = report.supervision_date;
+                document.getElementById('form-supervisor-real').value = `${report.teacher_name} ${report.teacher_lastname}`;
+                document.getElementById('form-comp-name').value = report.company_name;
+                document.getElementById('form-comp-address').value = report.company_address;
+                
+                document.getElementById('form-problems-real').value = report.problems || '';
+                document.getElementById('form-corrections-real').value = report.corrections || '';
+                document.getElementById('form-suggestions-real').value = report.suggestions || '';
+                
+                // Dynamic students
+                const dynamicDiv = document.getElementById('students-dynamic-rows');
+                if (dynamicDiv) {
+                    dynamicDiv.innerHTML = '';
+                    if (report.students && report.students.length > 0) {
+                        report.students.forEach(stud => {
+                            addStudentInputRow(stud.student_name, stud.level, stud.year, stud.major);
+                        });
+                    } else {
+                        addStudentInputRow();
+                    }
+                }
+                
+                // Scores / Radio Buttons
+                if (report.scores && report.scores.length > 0) {
+                    report.scores.forEach(sc => {
+                        const radio = document.querySelector(`input[name="scores[${sc.criteria_id}]"][value="${sc.score}"]`);
+                        if (radio) {
+                            radio.checked = true;
+                        }
+                    });
+                    calculateLiveEvaluationResult();
+                }
+                
+                // Photo previews and keep flags
+                for (let i = 1; i <= 4; i++) {
+                    const photoPath = report[`photo_${i}`];
+                    const keepInput = document.getElementById(`photo-keep-${i}`);
+                    const preview = document.getElementById(`preview-${i}`);
+                    
+                    if (photoPath) {
+                        if (keepInput) keepInput.value = '1';
+                        if (preview) {
+                            preview.innerHTML = `
+                                <img src="${photoPath}" alt="Preview image ${i}">
+                                <button type="button" class="btn-remove-img" onclick="clearPhotoInput(${i})" title="ลบรูปภาพ">&times;</button>
+                            `;
+                            preview.style.display = 'block';
+                        }
+                    } else {
+                        if (keepInput) keepInput.value = '0';
+                    }
+                }
+                
+                // Signature drawing pad canvas
+                if (report.signature) {
+                    const canvas = document.getElementById('signature-pad');
+                    if (canvas && ctx) {
+                        const img = new Image();
+                        img.onload = function() {
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
+                            ctx.drawImage(img, 0, 0);
+                            hasSigned = true; // Signature loaded successfully
+                        };
+                        img.src = report.signature;
+                    }
+                }
+                
+                showToast('โหลดข้อมูลรายงานเสร็จสิ้น สามารถทำการแก้ไขได้เลย', 'success');
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            showToast('เกิดข้อผิดพลาดในการโหลดข้อมูลรายงาน', 'error');
+        });
+}
+
+function deleteSupervisionReport(reportId) {
+    if (!confirm('คุณแน่ใจหรือไม่ที่จะลบรายงานการนิเทศนี้? การลบข้อมูลนี้จะไม่สามารถกู้คืนได้')) {
+        return;
+    }
+    
+    showToast('กำลังลบข้อมูลรายงาน...', 'info');
+    
+    fetch(`api_supervision.php?action=delete&id=${reportId}`)
+        .then(res => res.json())
+        .then(res => {
+            if (res.status === 'success') {
+                showToast(res.message || 'ลบรายงานการนิเทศสำเร็จแล้ว', 'success');
+                // Reload current view
+                if (currentUser && currentUser.role === 'admin') {
+                    loadAdminDashboard();
+                } else {
+                    loadTeacherDashboard();
+                    loadTeacherHistoryList();
+                }
+            } else {
+                showToast(res.message || 'ไม่สามารถลบรายงานการนิเทศได้', 'error');
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showToast('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์', 'error');
+        });
+}
+
+window.editSupervisionReport = editSupervisionReport;
+window.deleteSupervisionReport = deleteSupervisionReport;
 
 // ==========================================
 // Detail Modal View & PDF Compilations
