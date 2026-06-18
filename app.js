@@ -1388,8 +1388,8 @@ function compileAdminTeacherSummaryPrintDocument(metrics) {
         }
 
         const statusText = hasSupervised 
-            ? `<span style="color: #1e7e34; font-weight: bold;">นิเทศแล้ว (${t.supervision_count} ครั้ง)</span>` 
-            : `<span style="color: #bd2130; font-weight: bold;">ยังไม่นิเทศ</span>`;
+            ? `<span style="color: #1e7e34; font-weight: bold; font-size: 13pt; white-space: nowrap;">นิเทศแล้ว (${t.supervision_count} ครั้ง)</span>` 
+            : `<span style="color: #bd2130; font-weight: bold; font-size: 13pt; white-space: nowrap;">ยังไม่นิเทศ</span>`;
 
         return `
             <tr>
@@ -1424,10 +1424,10 @@ function compileAdminTeacherSummaryPrintDocument(metrics) {
             <table class="print-table">
                 <thead>
                     <tr>
-                        <th style="width: 10%; text-align: center;">ลำดับ</th>
-                        <th style="width: 40%; text-align: left;">ชื่อ - นามสกุลครูนิเทศก์</th>
+                        <th style="width: 8%; text-align: center;">ลำดับ</th>
+                        <th style="width: 37%; text-align: left;">ชื่อ - นามสกุลครูนิเทศก์</th>
                         <th style="width: 30%; text-align: left;">แผนกวิชา</th>
-                        <th style="width: 20%; text-align: center;">สถานะการนิเทศ</th>
+                        <th style="width: 25%; text-align: center;">สถานะการนิเทศ</th>
                     </tr>
                 </thead>
                 <tbody>
