@@ -1317,20 +1317,14 @@ textarea:focus {
 }
 
 @media print {
-    /* Hide screen tags */
-    body * {
-        visibility: hidden;
-    }
-    
-    #print-layout-container, #print-layout-container * {
-        visibility: visible;
+    /* Hide screen elements completely so they don't occupy layout space */
+    body > *:not(#print-layout-container) {
+        display: none !important;
     }
     
     #print-layout-container {
         display: block !important;
-        position: absolute;
-        left: 0;
-        top: 0;
+        position: relative;
         width: 100%;
         color: #000000;
         background-color: #ffffff;

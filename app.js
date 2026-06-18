@@ -1298,7 +1298,9 @@ function compileOfficialThaiGovernmentPrintDocument(r) {
             <div class="print-field">
                 <strong>วันที่ตรวจนิเทศ:</strong> ${formatThaiDate(r.supervision_date)}
                 <span style="margin-left: 50px;"><strong>ครูผู้นิเทศ:</strong> ${r.teacher_name} ${r.teacher_lastname}</span>
-                <span style="margin-left: 50px;"><strong>แผนกวิชา:</strong> ${r.department}</span>
+            </div>
+            <div class="print-field">
+                <strong>แผนกวิชา:</strong> ${r.department}
             </div>
 
             <div class="print-section-title">ข้อมูลสถานประกอบการ</div>
