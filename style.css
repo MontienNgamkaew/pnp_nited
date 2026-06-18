@@ -55,13 +55,6 @@ body {
     color: var(--text-primary);
     line-height: 1.6;
     overflow-x: hidden;
-    zoom: 0.9; /* Scale down the whole website to 90% zoom */
-}
-
-@media print {
-    body {
-        zoom: 1 !important;
-    }
 }
 
 a {
