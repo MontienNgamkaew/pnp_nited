@@ -1346,7 +1346,7 @@ textarea:focus {
         size: A4;
         margin-left: 1.5in;
         margin-right: 1.0in;
-        margin-top: 1.0in;
+        margin-top: 0.5in;
         margin-bottom: 1.0in;
     }
 
@@ -1420,9 +1420,7 @@ textarea:focus {
     }
 
     .print-textbox {
-        border: 1px solid #000000;
-        padding: 5px 8px;
-        min-height: 35px;
+        padding: 2px 0px;
         margin-top: 2px;
         font-size: 16pt;
     }
